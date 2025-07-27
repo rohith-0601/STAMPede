@@ -1,36 +1,25 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Button, Container } from "react-bootstrap";
+import L from "leaflet";
 
 const MapDashboard = () => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const mapContainerStyle = {
-    width: "100%",
-    height: "90vh",
-  };
-
-  const center = {
-    lat: 17.385044, // Hyderabad center (adjust as needed)
-    lng: 78.486671,
-  };
 
   const fetchUsers = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/users`);
       setUsers(res.data.users);
-      setLoading(false);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Failed to fetch users:", error);
     }
   };
 
   const sendAlert = async () => {
     try {
       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/alert`);
-      alert("🚨 Alerts sent to all users!");
+      alert("🚨 Alert sent to all users!");
     } catch (error) {
       alert("Failed to send alerts.");
     }
@@ -38,32 +27,37 @@ const MapDashboard = () => {
 
   useEffect(() => {
     fetchUsers();
-    const interval = setInterval(fetchUsers, 5000); // Refresh every 5 sec (simulate live)
+    const interval = setInterval(fetchUsers, 5000);
     return () => clearInterval(interval);
   }, []);
 
+  const defaultCenter = [17.385044, 78.486671]; // Hyderabad
+
   return (
     <Container className="mt-3">
-      <h3 className="mb-3">📍 STAMPede Admin Dashboard</h3>
+      <h3 className="mb-3">📍 STAMPede Admin Dashboard (Leaflet)</h3>
 
-      <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={15}
-        >
-          {!loading &&
-            users.map((user, idx) => (
-              <Marker
-                key={idx}
-                position={{
-                  lat: user.latitude,
-                  lng: user.longitude,
-                }}
-              />
-            ))}
-        </GoogleMap>
-      </LoadScript>
+      <MapContainer center={defaultCenter} zoom={15} style={{ height: "80vh", width: "100%" }}>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        />
+        {users.map((user, idx) => (
+          <Marker
+            key={idx}
+            position={[user.latitude, user.longitude]}
+            icon={L.icon({
+              iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+              shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+            })}
+          >
+            <Popup>
+              <strong>User</strong><br />
+              📞 {user.phoneNumber}
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
 
       <div className="d-flex justify-content-center mt-4">
         <Button variant="danger" size="lg" onClick={sendAlert}>

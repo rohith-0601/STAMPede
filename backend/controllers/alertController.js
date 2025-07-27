@@ -33,7 +33,8 @@ const sendAlertToAll = async (req, res) => {
       "⚠️ STAMPEDE ALERT! Evacuate the area calmly and stay safe.";
 
     for (const user of users) {
-      await sendSMS(user.phoneNumber, alertMessage);
+      await sendSMS(`+91${user.phoneNumber}`, alertMessage);
+
     }
 
     res.status(200).json({ message: "Alerts sent successfully" });
