@@ -1,12 +1,15 @@
-import React from "react";
 import MapDashboard from "./components/MapDashboard";
 import UserForm from "./components/UserForm";
 
 function App() {
+  const refreshMap = () => {
+    // Optional: trigger refresh on map component
+  };
+
   return (
     <>
       <MapDashboard />
-      <UserForm />
+      <UserForm onUserRegistered={refreshMap} />
     </>
   );
 }
